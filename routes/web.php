@@ -310,8 +310,8 @@ Route::prefix('cursos')->name('cursos.')->group(function (){
 
 //############ Evento ##############################################
 Route::prefix('evento')->name('evento.')->group(function () {
-    Route::get('/criar', 'EventoController@create')->name('criar')->middleware('checkAdministrador');
-    Route::post('/criar', 'EventoController@store')->name('criar')->middleware('checkAdministrador');
+    Route::get('/criar/{continuo?}', 'EventoController@create')->name('criar')->middleware('checkAdministrador');
+    Route::post('/criar/{continuo?}', 'EventoController@store')->name('criar')->middleware('checkAdministrador');
     Route::get('/visualizar/{id}', 'EventoController@show')->name('visualizar')->middleware('auth');
     Route::get('/listar', 'EventoController@listar')->name('listar')->middleware('auth');
     Route::delete('/excluir/{id}', 'EventoController@destroy')->name('deletar')->middleware('checkRoles:coordenador,administrador');

@@ -65,13 +65,21 @@ class EventoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create($continuo = False)
     {
         $coordenadors = CoordenadorComissao::with('user')->get();
         $naturezas = Natureza::orderBy('nome')->get();
         $yesterday = Carbon::yesterday('America/Recife');
         $yesterday = $yesterday->toDateString();
-        return view('evento.criarEvento', ['coordenadors' => $coordenadors, 'naturezas' => $naturezas, 'ontem' => $yesterday]);
+
+        if($continuo == False){
+            $viewName = 'evento.criarEvento';
+        } else{
+            $viewName = 'evento.criarEventoContinuo';
+        }
+
+        return view($viewName, ['coordenadors' => $coordenadors, 'naturezas' => $naturezas, 'ontem' => $yesterday]);
+
     }
 
     /**
@@ -80,9 +88,9 @@ class EventoController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request, $continuo = False)
     {
-
+        dd($continuo);
         $mytime = Carbon::now('America/Recife');
         $yesterday = Carbon::yesterday('America/Recife');
         $yesterday = $yesterday->toDateString();
@@ -108,11 +116,12 @@ class EventoController extends Controller
         if(
             $request->inicioSubmissao == null ||
             $request->fimSubmissao == null    ||
-            $request->inicioRevisao == null   ||
+            $continuo == False                &&
+            ($request->inicioRevisao == null  ||
             $request->fimRevisao == null      ||
             $request->resultado == null       ||
             $request->inicioProjeto == null   ||
-            $request->fimProjeto == null
+            $request->fimProjeto == null)
 
         ){
             $validatedData = $request->validate([
@@ -143,36 +152,69 @@ class EventoController extends Controller
             ]);
         }
 
-        // validacao normal
-        //after   = depois
-        //before  = antes
-        $validatedData = $request->validate([
-            'nome'                => ['required', 'string'],
-            'descricao'           => ['required', 'string','max:1500'],
-            'tipo'                => ['required', 'string'],
-            'natureza'            => ['required'],
-            'coordenador_id'      => ['required'],
-            'numParticipantes'      => ['required'],
-            'nome_docExtra'       => [Rule::requiredIf($request->check_docExtra != null),'max:255'],
-            #----------------------------------------------
-            'inicioSubmissao'     => ['required', 'date', 'after:yesterday'],
-            'fimSubmissao'        => ['required', 'date', 'after_or_equal:inicioSubmissao'],
-            'inicioRevisao'       => ['required', 'date', 'after:yesterday'],
-            'fimRevisao'          => ['required', 'date', 'after:inicioRevisao', 'after:fimSubmissao'],
-            'resultado_preliminar'=> ['required', 'date', 'after_or_equal:fimRevisao'],
-            'inicio_recurso'      => ['required', 'date', 'after_or_equal:resultado_preliminar'],
-            'fim_recurso'         => ['required', 'date', 'after:inicio_recurso'],
-            'resultado_final'     => ['required', 'date', 'after:fim_recurso'],
-            'dt_inicioRelatorioParcial'  => ['required', 'date', 'after:resultado_final'],
-            'dt_fimRelatorioParcial'     => ['required', 'date', 'after_or_equal:dt_inicioRelatorioParcial'],
-            'dt_inicioRelatorioFinal'  => ['required', 'date', 'after:dt_fimRelatorioParcial'],
-            'dt_fimRelatorioFinal'     => ['required', 'date', 'after_or_equal:dt_inicioRelatorioFinal'],
-            'pdfFormAvalExterno'           => [($request->pdfFormAvalExternoPreenchido!=='sim'?'required':''), 'file','mimes:pdf,doc,docx,xlsx,xls,csv,zip', 'max:2048'],
-            'pdfEdital'           => [($request->pdfEditalPreenchido!=='sim'?'required':''), 'file', 'mimes:pdf', 'max:2048'],
-            'inicioProjeto'       => ['required', 'date', 'after:yesterday'],
-            'fimProjeto'          => ['required', 'date', 'after_or_equal:fimSubmissao'],
-            //'modeloDocumento'     => ['file', 'mimes:zip,doc,docx,odt,pdf', 'max:2048'],
-        ]);
+        if($continuo == False){
+            // validacao normal
+            //after   = depois
+            //before  = antes
+            $validatedData = $request->validate([
+                'nome'                => ['required', 'string'],
+                'descricao'           => ['required', 'string','max:1500'],
+                'tipo'                => ['required', 'string'],
+                'natureza'            => ['required'],
+                'coordenador_id'      => ['required'],
+                'numParticipantes'      => ['required'],
+                'nome_docExtra'       => [Rule::requiredIf($request->check_docExtra != null),'max:255'],
+                #----------------------------------------------
+                'inicioSubmissao'     => ['required', 'date', 'after:yesterday'],
+                'fimSubmissao'        => ['required', 'date', 'after_or_equal:inicioSubmissao'],
+                'inicioRevisao'       => ['required', 'date', 'after:yesterday'],
+                'fimRevisao'          => ['required', 'date', 'after:inicioRevisao', 'after:fimSubmissao'],
+                'resultado_preliminar'=> ['required', 'date', 'after_or_equal:fimRevisao'],
+                'inicio_recurso'      => ['required', 'date', 'after_or_equal:resultado_preliminar'],
+                'fim_recurso'         => ['required', 'date', 'after:inicio_recurso'],
+                'resultado_final'     => ['required', 'date', 'after:fim_recurso'],
+                'dt_inicioRelatorioParcial'  => ['required', 'date', 'after:resultado_final'],
+                'dt_fimRelatorioParcial'     => ['required', 'date', 'after_or_equal:dt_inicioRelatorioParcial'],
+                'dt_inicioRelatorioFinal'  => ['required', 'date', 'after:dt_fimRelatorioParcial'],
+                'dt_fimRelatorioFinal'     => ['required', 'date', 'after_or_equal:dt_inicioRelatorioFinal'],
+                'pdfFormAvalExterno'           => [($request->pdfFormAvalExternoPreenchido!=='sim'?'required':''), 'file','mimes:pdf,doc,docx,xlsx,xls,csv,zip', 'max:2048'],
+                'pdfEdital'           => [($request->pdfEditalPreenchido!=='sim'?'required':''), 'file', 'mimes:pdf', 'max:2048'],
+                'inicioProjeto'       => ['required', 'date', 'after:yesterday'],
+                'fimProjeto'          => ['required', 'date', 'after_or_equal:fimSubmissao'],
+                //'modeloDocumento'     => ['file', 'mimes:zip,doc,docx,odt,pdf', 'max:2048'],
+            ]);
+
+            //Datas que só são usadas em editais padrão
+            $evento['inicioRevisao']       = $request->inicioRevisao;
+            $evento['fimRevisao']          = $request->fimRevisao;
+            $evento['inicio_recurso']      = $request->inicio_recurso;
+            $evento['fim_recurso']         = $request->fim_recurso;
+            $evento['resultado_preliminar']= $request->resultado_preliminar;
+            $evento['resultado_final']     = $request->resultado_final;
+            $evento['dt_inicioRelatorioParcial']  = $request->dt_inicioRelatorioParcial;
+            $evento['dt_fimRelatorioParcial']     = $request->dt_fimRelatorioParcial;
+            $evento['dt_inicioRelatorioFinal']  = $request->dt_inicioRelatorioFinal;
+            $evento['dt_fimRelatorioFinal']     = $request->dt_fimRelatorioFinal;
+            $evento['inicioProjeto']       = $request->inicioProjeto;
+            $evento['fimProjeto']          = $request->fimProjeto;
+
+        } else {
+            $validatedData = $request->validate([
+                'nome'                => ['required', 'string'],
+                'descricao'           => ['required', 'string','max:1500'],
+                'tipo'                => ['required', 'string'],
+                'natureza'            => ['required'],
+                'coordenador_id'      => ['required'],
+                'numParticipantes'    => ['required'],
+                'nome_docExtra'       => [Rule::requiredIf($request->check_docExtra != null),'max:255'],
+                'inicioSubmissao'     => ['required', 'date', 'after:yesterday'],
+                'fimSubmissao'        => ['required', 'date', 'after_or_equal:inicioSubmissao'],
+                'pdfFormAvalExterno'  => [($request->pdfFormAvalExternoPreenchido!=='sim'?'required':''), 'file','mimes:pdf,doc,docx,xlsx,xls,csv,zip', 'max:2048'],
+                'pdfEdital'           => [($request->pdfEditalPreenchido!=='sim'?'required':''), 'file', 'mimes:pdf', 'max:2048'],
+            ]);
+        }
+        
+        
 
         //$evento = Evento::create([
         $evento['nome']                = $request->nome;
@@ -184,16 +226,6 @@ class EventoController extends Controller
         }
         $evento['inicioSubmissao']     = $request->inicioSubmissao;
         $evento['fimSubmissao']        = $request->fimSubmissao;
-        $evento['inicioRevisao']       = $request->inicioRevisao;
-        $evento['fimRevisao']          = $request->fimRevisao;
-        $evento['inicio_recurso']      = $request->inicio_recurso;
-        $evento['fim_recurso']         = $request->fim_recurso;
-        $evento['resultado_preliminar']= $request->resultado_preliminar;
-        $evento['resultado_final']     = $request->resultado_final;
-        $evento['dt_inicioRelatorioParcial']  = $request->dt_inicioRelatorioParcial;
-        $evento['dt_fimRelatorioParcial']     = $request->dt_fimRelatorioParcial;
-        $evento['dt_inicioRelatorioFinal']  = $request->dt_inicioRelatorioFinal;
-        $evento['dt_fimRelatorioFinal']     = $request->dt_fimRelatorioFinal;
         $evento['coordenadorId']       = $request->coordenador_id;
         $evento['criador_id']          = $user_id;
         $evento['numParticipantes']    = $request->numParticipantes;
@@ -201,8 +233,7 @@ class EventoController extends Controller
         $evento['cotaDoutor']               = $request->has('cotaDoutor');
         $evento['obrigatoriedade_docExtra'] = $request->has('obrigatoriedade_docExtra');
         $evento['anexosStatus']        = 'final';
-        $evento['inicioProjeto']       = $request->inicioProjeto;
-        $evento['fimProjeto']          = $request->fimProjeto;
+
 
         //dd($evento);
         // $user = User::find($request->coordenador_id);

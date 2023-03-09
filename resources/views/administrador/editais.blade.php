@@ -143,7 +143,7 @@
                   <a href="{{route('evento.criar')}}" class="btn btn-info">Edital Padrão</a>
                 </div>
                 <div class='col-4'>
-                  <a href="{{route('evento.criar')}}" class="btn btn-info">Fluxo Contínuo</a>
+                  <a href="/evento/criar/{{True}}" class="btn btn-info">Fluxo Contínuo</a>
                 </div>
               </div>
               
