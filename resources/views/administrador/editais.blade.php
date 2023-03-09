@@ -24,7 +24,7 @@
         <h4 class="titulo-table">Editais</h4>
       </div>
       <div class="col-sm-3">
-          <a href="{{route('evento.criar')}}" class="btn btn-info" style="float: right;">Criar Edital</a>
+          <button type="button" class="btn btn-info" data-toggle="modal" data-target="#criarModal" style="float: right;">Criar Edital</button>
       </div>
 
     </div>
@@ -126,6 +126,32 @@
           @endforeach
         </tbody>
       </table>
+
+      <!-- Modal criar edital-->
+      <div class="modal fade" id="criarModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Criar edital</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <div class='row justify-content-center'>
+                <div class='col-4'>
+                  <a href="{{route('evento.criar')}}" class="btn btn-info">Edital Padrão</a>
+                </div>
+                <div class='col-4'>
+                  <a href="{{route('evento.criar')}}" class="btn btn-info">Fluxo Contínuo</a>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
